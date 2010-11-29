@@ -2,6 +2,8 @@ package net.noiseinstitute.cinch;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +47,9 @@ public class HTTPRequest {
 		return method;
 	}
 
-	public static HTTPRequest parseRequest(BufferedReader reader) throws IOException {
+	public static HTTPRequest parseRequest(InputStream inputStream) throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "US-ASCII"));
+		
 		// For robustness skip blank lines, per RFC2616.
 		String line;
 		do {
@@ -56,13 +60,12 @@ public class HTTPRequest {
 			return null;
 		}
 
-		Method method = parseRequestLine(line);
-		if (method == null) {
+		HTTPRequest request = new HTTPRequest();
+
+		request.method = parseRequestLine(line);
+		if (request.method == null) {
 			return null;
 		}
-
-		HTTPRequest request = new HTTPRequest();
-		request.method = method;
 
 		return request;
 	}

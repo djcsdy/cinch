@@ -31,8 +31,7 @@ public class HTTPServer {
 		HTTPRequest request;
 		do {
 			client = server.awaitRequest();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(), "US-ASCII"));
-			request = HTTPRequest.parseRequest(reader);
+			request = HTTPRequest.parseRequest(client.getInputStream());
 		} while (request == null);
 
 		HTTPResponse response = new HTTPResponse(client.getOutputStream());
