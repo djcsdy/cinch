@@ -5,8 +5,10 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.channels.*;
+import java.nio.channels.spi.SelectorProvider;
 
-public class Server {
+public class Server extends SelectableChannel {
 
     private static final InetAddress DEFAULT_ADDRESS;
 
@@ -21,6 +23,8 @@ public class Server {
     private InetAddress address;
     private int port;
     private ServerSocket socket;
+    private ServerSocketChannel channel;
+
 
     public Server (int port) {
         this(DEFAULT_ADDRESS, port);
@@ -33,10 +37,57 @@ public class Server {
 
     public void start () throws IOException {
         socket = new ServerSocket(port, 0, address);
+        channel = socket.getChannel();
     }
 
-    public Socket awaitRequest () throws IOException {
+    public Socket accept () throws IOException {
         return socket.accept();
     }
 
+    @Override
+    public SelectorProvider provider () {
+        return channel.provider();
+    }
+
+    @Override
+    public int validOps () {
+        return channel.validOps();
+    }
+
+    @Override
+    public boolean isRegistered () {
+        return channel.isRegistered();
+    }
+
+    @Override
+    public SelectionKey keyFor (Selector sel) {
+        return channel.keyFor(sel);
+    }
+
+    @Override
+    public SelectionKey register (Selector sel, int ops, Object att) throws ClosedChannelException {
+        return channel.register(sel, ops, att);
+    }
+
+    @Override
+    public SelectableChannel configureBlocking (boolean block) throws IOException {
+        channel.configureBlocking(block);
+        return this;
+    }
+
+    @Override
+    public boolean isBlocking () {
+        return channel.isBlocking();
+    }
+
+    @Override
+    public Object blockingLock () {
+        return channel.blockingLock();
+    }
+
+    @Override
+    protected void implCloseChannel () throws IOException {
+        channel.close();
+    }
+    
 }
