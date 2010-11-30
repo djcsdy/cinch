@@ -1,42 +1,42 @@
 package net.noiseinstitute.cinch;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
 public class HTTPServer {
 
-	private static final int DEFAULT_PORT = 80;
-	
-	private Server server;
+    private static final int DEFAULT_PORT = 80;
 
-	public HTTPServer () {
-		this(DEFAULT_PORT);
-	}
+    private Server server;
 
-	public HTTPServer (int port) {
-		server = new Server(port);
-	}
+    public HTTPServer () {
+        this(DEFAULT_PORT);
+    }
 
-	public HTTPServer (InetAddress address) {
-		this(address, DEFAULT_PORT);
-	}
+    public HTTPServer (int port) {
+        server = new Server(port);
+    }
 
-	public HTTPServer (InetAddress address, int port) {
-		server = new Server(address, port);
-	}
+    public HTTPServer (InetAddress address) {
+        this(address, DEFAULT_PORT);
+    }
 
-	public HTTPSession awaitRequest () throws IOException {
-		Socket client;
-		HTTPRequest request;
-		do {
-			client = server.awaitRequest();
-			request = HTTPRequest.parseRequest(client.getInputStream());
-		} while (request == null);
+    public HTTPServer (InetAddress address, int port) {
+        server = new Server(address, port);
+    }
 
-		HTTPResponse response = new HTTPResponse(client.getOutputStream());
+    public HTTPSession awaitRequest () throws IOException {
+        Socket client;
+        HTTPRequest request;
+        do {
+            client = server.awaitRequest();
+            request = HTTPRequest.parseRequest(client.getInputStream());
+        } while (request == null);
 
-		return new HTTPSession(request, response);
-	}
+        HTTPResponse response = new HTTPResponse(client.getOutputStream());
+
+        return new HTTPSession(request, response);
+    }
 
 }
