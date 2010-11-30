@@ -1,42 +1,40 @@
 package net.noiseinstitute.cinch;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
+import java.net.*;
+import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 
 public class HTTPServer extends SelectableChannel {
 
-    private static final int DEFAULT_PORT = 80;
+    private ServerSocket socket;
+    private ServerSocketChannel channel;
+    private Socket client;
 
-    private Server server;
-
-    public HTTPServer () {
-        this(DEFAULT_PORT);
+    public HTTPServer () throws IOException {
+        socket = new ServerSocket();
+        channel = socket.getChannel();
     }
 
-    public HTTPServer (int port) {
-        server = new Server(port);
+    public HTTPServer (InetAddress address, int port) throws IOException {
+        this();
+        bind(new InetSocketAddress(address, port));
     }
 
-    public HTTPServer (InetAddress address) {
-        this(address, DEFAULT_PORT);
-    }
-
-    public HTTPServer (InetAddress address, int port) {
-        server = new Server(address, port);
+    public void bind (SocketAddress address) throws IOException {
+        socket.bind(address);
     }
 
     public HTTPSession accept () throws IOException {
-        Socket client;
         HTTPRequest request;
         do {
-            client = server.accept();
+            if (client.isClosed()) {
+                client = socket.accept();
+            }
             request = HTTPRequest.parseRequest(client.getInputStream());
+            if (request == null) {
+                client.close();
+            }
         } while (request == null);
 
         HTTPResponse response = new HTTPResponse(client.getOutputStream());
@@ -46,48 +44,48 @@ public class HTTPServer extends SelectableChannel {
 
     @Override
     protected void implCloseChannel () throws IOException {
-        server.close();
+        channel.close();
     }
 
     @Override
     public SelectorProvider provider () {
-        return server.provider();
+        return channel.provider();
     }
 
     @Override
     public int validOps () {
-        return server.validOps();
+        return channel.validOps();
     }
 
     @Override
     public boolean isRegistered () {
-        return server.isRegistered();
+        return channel.isRegistered();
     }
 
     @Override
     public SelectionKey keyFor (Selector sel) {
-        return server.keyFor(sel);
+        return channel.keyFor(sel);
     }
 
     @Override
     public SelectionKey register (Selector sel, int ops, Object att) throws ClosedChannelException {
-        return server.register(sel, ops, att);
+        return channel.register(sel, ops, att);
     }
 
     @Override
     public SelectableChannel configureBlocking (boolean block) throws IOException {
-        server.configureBlocking(block);
+        channel.configureBlocking(block);
         return this;
     }
 
     @Override
     public boolean isBlocking () {
-        return server.isBlocking();
+        return channel.isBlocking();
     }
 
     @Override
     public Object blockingLock () {
-        return server.blockingLock();
+        return channel.blockingLock();
     }
 
 }
